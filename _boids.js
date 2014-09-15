@@ -1,24 +1,7 @@
 
-// if the $ object does not exist make it
-if ( !window.$ ) {
-    window.$ = {};
-};
-//
-(function(){
-    'use strict';
-    //
-    //
-    // create a module class if its not already present
-    // needs an odd name to not clash with $ libraries
-    if( !$.logoMods ){
-        //
-        $.logoMods = new Object();
-        //
-    };
-
-
-
-    $.logoMods.Boids = function( processing, options ){
+(function( $ ){
+    
+    $.fn.Boids = function( processing, options ){
 	//
 	// Dependencies:
 	//       Framework : Processing
@@ -63,8 +46,9 @@ if ( !window.$ ) {
 	//
 	// make the object dynamic
 	boid = (function(){ return boid; })(),
+	//
 	// merge the options into the settings
-	s = $.logoMods.mergeObjects( boid.settings , options ); 
+	s = $.extend( boid.settings , options ); 
 	//
 	// Save the first past location
 	s.pastLocation = new p.PVector( s.startPos.x ,
@@ -244,7 +228,7 @@ if ( !window.$ ) {
 
 	boid.renderNetwork = function(){
 	    //
-	    s.radius = 2;
+	    s.radius = 1;
 	    // Ease down 
 	    // every n  frames ease the radius down to the set limit if the radius 
 	    // is still bigger than the radiusLimit
@@ -350,4 +334,4 @@ if ( !window.$ ) {
 
 
 
-})($); // anon function
+}( jQuery )); // anon function

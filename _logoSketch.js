@@ -1,34 +1,7 @@
-/*
- * Sudotouch logo v1
- *
- * Use the at sign to referance locations during searches
- * example : @top || @index
- *
- * procSketch 
- *
- * logocontroller || LC
- *
- * 
- */
-// @IMPORTS 
-// @codekit-prepend "/modules/_mergeObjects.js"
-// @codekit-prepend "/modules/_boids.js"
+ (function( $ ){
 
-
-
-
-if ( !window.$ ) {
-    //
-    // if no plugin is using $, make it
-    window.$ = {};
-    //
-}
-//
-// pass the $ object into the scope
-(function($){
-    
     // Main processing function
-    var procSketch = function( processing ) {
+    $.fn.logoSketch = function( processing ) {
 	//
 	// Save the processing object
 	var p = processing,
@@ -36,13 +9,60 @@ if ( !window.$ ) {
 	imgW = 1600, //3000,
 	imgH = 1200, //1106.24,
 	// Use the image size to base the canvas ratio
-	// do these variables to make sure the image 
+	// use these variables to make sure the image 
 	// coevers the canvas
-	WIDTH = imgW,
-	HEIGHT = imgH;
-
-
-
+	WIDTH 
+	= imgW,
+	HEIGHT = imgH,
+	//
+	// outside canvas elements
+	$doc = $(document),
+	controllers;
+	
+	// @controllers 
+	var Controllers = function( onChange, onPrev , onNext ){ 
+	    //
+	    var that = {
+		CONTROLS_ID : 'controls',
+		PREV_ID : 'backButton',
+		NEXT_ID : 'nextButton',
+		VALUE_TAG : 'value',
+		onPrev : onPrev || {},
+		onNext : onNext || {},
+		onChange : onChange || {},
+	    },
+	    //
+	    // elements
+	    $controls = $doc.find( '#'+that.CONTROLS_ID ),
+	    $prevButton = $doc.find( '#'+that.PREV_ID ),
+	    $nextButton = $doc.find( '#'+that.NEXT_ID );
+	    
+	    that.init = function(){ 
+		//
+		// trigger the callback function prev 
+		// or next button clicks
+		$controls.on( 'click', function( e ){ 
+			//
+			e.preventDefault();
+			//
+			var $this = $(e.target),
+			value = $this.data( that.VALUE_TAG );
+			//
+			if( typeof that.onChange === 'function' ){ 
+			    //
+			    that.onChange.call( that, value );
+			    //
+			};
+		    });
+		// 
+		return that;
+	    };
+	    
+	    
+	    return that;
+	    //
+	}; // controlers
+	
 
 	// @logoController || @LC
 	var LogoController = function( options ){
@@ -71,11 +91,10 @@ if ( !window.$ ) {
 	    },
 	    //
 	    // shorten settings and merge the new options into it
-	    s = $.logoMods.mergeObjects( LC.settings , options );
+	    s = $.extend( LC.settings , options );
 
 	    
 	    LC.init = function(){ 
-		//
 		// note: do not use inside the draw function*
 		//
 		// activate all the boids
@@ -101,7 +120,7 @@ if ( !window.$ ) {
 			//
 			// @boid 
 			s.boids[ boidIndex ] = 
-			    $.logoMods.Boids( p , { 
+			    $.fn.Boids( p , { 
 				    strokeW : s.strokeW,
 				    color : clusters[clusterIndex].color,
 				    startPos : clusters[clusterIndex].startPos,
@@ -127,7 +146,6 @@ if ( !window.$ ) {
 	    
 	    
 	    LC.render = function(){ 
-		//
 		// use inside the draw to render the boids
 		//
 		// changes the state on key pressed
@@ -209,10 +227,32 @@ if ( !window.$ ) {
 	    };// changePositionOnKey
 	    
 
-	    LC.changeState = function(){ 
+	    LC.changeState = function( value ){ 
+		//
+		//
+		// leave function if the value is corrupted
+		if( value === undefined || value !== value ){ 
+		    //
+		    // value is not a number leave function
+		    return LC;
+		}
+		//
+		s.position = s.position + parseInt( value );
+		//
+		// loop the states 
+		if ( value === 1 && s.position > 4 ){ 
+		    // 
+		    s.position = 1;
+		    //
+		} else if( value === -1 && s.position < 1 ){ 
+		    //
+		    s.position  = 4;
+		    //
+		};
 		//
 		var newState;
 		//
+		console.log( s.position );
 		// translate the position into a state
 		newState = LC.translateToState( s.position );
 		//
@@ -257,6 +297,7 @@ if ( !window.$ ) {
 		    break;
 		};
 		//
+		//
 		return state;
 	    };
 
@@ -290,80 +331,73 @@ if ( !window.$ ) {
 	sudotouch  = p.loadImage( imgURL, "png");
 	
 	// @colors
-	//
-	var light = p.color( 235, 220, 157 ),
-	bright = p.color( 254, 205, 74 ),
-	med = p.color( 236, 180, 71 ),
-	dark = p.color( 190, 132, 24 ),
-	sdark = p.color( 170,112, 4 );
 	
+	var sdBlue = p.color( 1, 33, 71 ),
+	dBlue = p.color( 47, 93, 143 ),
+	blue = p.color( 113, 189, 208 ),
+	sdGreen = p.color( 36, 125, 105 ),
+	dGreen = p.color( 32, 160, 95),
+	green = p.color( 32, 181, 115 );
 
+	
 	// cluster settings
 	// @clusterSet || CS
 	var clusterSettings = {
 	    strokeW : .7,
-	    boidAmount : 7000, // current performance limit 8,000
+	    boidAmount : 4000, // current performance limit 8,000
 	    clusters :  [{ 
 		    // 
 		    // reads from left to write
 		    // orange
-		    color : sdark,
+		    color : sdBlue,
 		    startPos : new p.PVector( WIDTH - WIDTH/1.2,
 					      HEIGHT/2 )
 		},{ // 
-		    color : sdark,
+		    color : dBlue,
 		    startPos : new p.PVector( WIDTH - WIDTH/1.2,
 					      HEIGHT/2 )
 		},{ // 
-		    color : dark,
+		    color : dBlue,
 		    startPos : new p.PVector( WIDTH - WIDTH/1.3,
 					      HEIGHT/2 )
 		},{ // 
-		    color : med,
-		    startPos : new p.PVector( WIDTH - WIDTH/1.3,
-					      HEIGHT/2.5 )
-		},{ // 
-		    color : med,
-		    startPos : new p.PVector( WIDTH - WIDTH/1.3,
-					      HEIGHT/2 )
-		},{ // 
-		    color : bright,
-		    startPos : new p.PVector( WIDTH - WIDTH/1.4,
+		    color : blue,
+		    startPos : new p.PVector( WIDTH - WIDTH/1.45,
 					      HEIGHT - HEIGHT/2.5 )
 		},{ // 
-		    color : light,
-		    startPos : new p.PVector( WIDTH - WIDTH/1.6, 
-					      HEIGHT - HEIGHT/1.8)
+		    color : blue,
+		    startPos : new p.PVector( WIDTH - WIDTH/1.6,
+					      HEIGHT - HEIGHT/3)
 		},{ // 
-		    color : light,
+		    color : blue,
 		    startPos : new p.PVector( WIDTH - WIDTH/1.7,
 					      HEIGHT - HEIGHT/2.1)
 		},{ // 
-		    color : light,
+		    color : sdGreen,
 		    startPos : new p.PVector( WIDTH - WIDTH/2.2,
 					      HEIGHT/2)
 		},{ // 
-		    color : bright,
+		    color : sdGreen,
 		    startPos : new p.PVector( WIDTH - WIDTH/2.3,
 					      HEIGHT/2)
 		},{ // 
-		    color : bright,
+		    color : sdGreen,
 		    startPos : new p.PVector( WIDTH - WIDTH/2.8,
 					      HEIGHT/2.5)
 		},{ // 
-		    color : med,
+		    color : dGreen,
 		    startPos : new p.PVector( WIDTH - WIDTH/3,
 					      HEIGHT/2)
 		},{ // 
-		    color : med,
+		    color : green,
 		    startPos : new p.PVector(  WIDTH - WIDTH/6,
 					       HEIGHT/2)
 		},{ // 
-		    color : dark,
+		    color : green,
 		    startPos : new p.PVector( WIDTH - WIDTH/7,
 					      HEIGHT/3)
 		},{ // 
-		    color : dark,
+		    color : green,
 		    startPos : new p.PVector( WIDTH - WIDTH/8,
 					      HEIGHT/2)
 		}],
@@ -372,7 +406,11 @@ if ( !window.$ ) {
 	// Initiate the logo Controller
 	var logoController = LogoController( clusterSettings );
 	logoController.init();
-	
+	//
+	// Inititate the Controllers
+	controllers = Controllers( logoController.changeState );
+	controllers.init();
+
 
 	// CANVAS SETUP @setup
 	p.setup = function() {
@@ -395,16 +433,7 @@ if ( !window.$ ) {
 	    p.image( sudotouch, 0, 0 , WIDTH, HEIGHT );
 	};
 	
-    }//procSketch
+	return this;
+  }//procSketch
 
-
-
-    // ACTIVATE SKETCH
-    var canvas = document.getElementById("canvas");
-    //
-    // attaching the sketchProc function to the canvas
-    var p = new Processing( canvas, procSketch );
-    // p.exit(); to detach it
-
-
-})($);
+}( jQuery ));
